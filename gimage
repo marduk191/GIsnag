@@ -1,0 +1,89 @@
+#!/bin/bash                   
+###############################
+## GIsnag                     #
+## By marduk191               #
+## email: marduk191@gmail.com #
+###############################
+##Function:
+#Downloads x amount of images from Google, based on your search terms.
+#
+##Usage:
+#./gimage <number of images> <"keyword">
+#
+##Example:
+#To download the first 10 Google images of clowns
+# ./gimage 10 clowns
+#######################################################################
+function getMyImages {
+    # parse arguments
+    count=${1}
+    shift
+    query="$*"
+    [ -z "$query" ] && exit 1  # insufficient arguments
+
+    ##set search arguments
+    
+    #SafeSearch off, Any image size.
+    gsarg="&safe=off&tbm=isch&tbas=0"
+    
+    #SafeSearch off, Medium image size.
+    #gsarg="&safe=off&tbm=isch&tbs=isz:m"
+    
+    #SafeSearch off, Large image size.
+    #gsarg="&safe=off&tbm=isch&tbs=isz:l"
+    
+    # Image search = &tbm=isch
+    # SafeSearch off = &safe=off
+    # Large size =  &tbs=isz:l
+    # Medium size =  &tbs=isz:m
+    # Any size =  &tbas=0
+    ##
+    
+    # set user agent, customize this by visiting http://whatsmyuseragent.com/
+    # (Currently Firefox/linux)
+    useragent='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0'
+
+    # construct google link
+    link="www.google.com/search?q=${query}/$gsarg"
+
+    # fetch link for download
+    imagelink=$(wget -e robots=off --user-agent "$useragent" -qO - "$link" | sed 's/</\n</g' | grep '<a href.*\(png\|jpg\|jpeg\)' | sed 's/.*imgurl=\([^&]*\)\&.*/\1/' | head -n "$count" | tail -n1)
+    imagelink="${imagelink%\%*}"
+
+    # get file extention (.png, .jpg, .jpeg)
+    ext=$(echo "$imagelink" | sed "s/.*\(\.[^\.]*\)$/\1/")
+
+    # set default save location and file name
+    # Currently (./images/searchterm_ResultNumber.extension)
+    dir="$PWD/images"
+    file="$1_$count"
+
+    # construct image link: add 'echo "${google_image}"'
+    # after this line for debug output
+    google_image="${dir}/${file}"
+
+    # construct name, append number if file exists
+    if [[ -e "${google_image}${ext}" ]] ; then
+        i=0
+        while [[ -e "${google_image}(${i})${ext}" ]] ; do
+        ((i++))
+        done
+        google_image="${google_image}(${i})${ext}"
+    else
+        google_image="${google_image}${ext}"
+    fi
+
+    # get actual picture and store in google_image.$ext
+    wget --max-redirect 0 -qO "${google_image}" "${imagelink}"
+
+    # successful execution, exit code 0
+    #exit 0
+}
+
+for i in $(seq 1 "$1"); 
+do 
+    echo "Downloading image" "$i"
+    getMyImages "$i" "$2"; 
+done;
+
+
