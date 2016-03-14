@@ -16,16 +16,16 @@ This is a bash script to download images from Google Images
 
 #Usage
 ------------
-```
+````
 ./gimage <number of images> <"keyword">
-```
+````
 
 
 Example:
 To download the first 10 Google images of clowns
-```
+````
 ./gimage 10 clowns
-```
+````
 
 #Questions, Comments, Concerns, Issues
 -------------------------------------
